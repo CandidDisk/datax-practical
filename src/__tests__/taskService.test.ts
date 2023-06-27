@@ -58,4 +58,15 @@ describe('taskService', () => {
         const task = await taskService.dequeue()
         expect(task).toEqual(undefined)
     })
+
+    // Test setResult sets task id key with result value in redis
+    test('setResult should set taskId key with result value in redis', async () => {
+        const taskId = "1"
+        const value = true
+
+        await taskService.setResult(taskId, value)
+
+        const result = await redis.get(taskId)
+        expect(JSON.parse(result)).toEqual(value)
+    })
 })
