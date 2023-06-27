@@ -29,14 +29,13 @@ const taskArr: Task[] = [
     }
 ]
 
-//taskService.enqueue(task)
-
-//taskArr.map(async (task) => {
-//    await taskService.enqueue(task)
-//})
-
-taskService.processNextTask().then(r => {
-    console.log(r)
-    //taskService.getResult(task.taskId)
-    console.log('done')
+taskArr.map(async (task) => {
+    await taskService.enqueue(task)
 })
+
+taskArr.map(async (task) => {
+    await taskService.processNextTask().then(async (result) => {
+        console.log(`Completed w/ task [${task.taskId}], result: ${result}`)
+    })
+})
+
