@@ -1,5 +1,5 @@
 interface Task {
-    taskId: string,
+    taskId?: string,
     data: string
 }
 
