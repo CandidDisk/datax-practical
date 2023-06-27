@@ -5,10 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 const taskService = new TaskServiceImpl()
 
-const task2: Task = {
-    taskId: uuidv4(),
-    data: "Ta"
-}
 
 const taskArr: Task[] = [
     {
