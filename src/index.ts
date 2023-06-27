@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const taskService = new TaskServiceImpl()
 
+// Example implementation of TaskService
 
 const taskArr: Task[] = [
     {
@@ -25,10 +26,12 @@ const taskArr: Task[] = [
     }
 ]
 
+// Enqueue taskArr
 taskArr.map(async (task) => {
     await taskService.enqueue(task)
 })
 
+// Process each task in taskArr
 taskArr.map(async (task) => {
     await taskService.processNextTask().then(async (result) => {
         console.log(`Completed w/ task [${task.taskId}], result: ${result}`)

@@ -12,6 +12,7 @@ class TaskServiceImpl implements TaskService {
 
     public redisClient = redis
 
+    // Dequeues task from start of redis task list
     public async dequeue(): Promise<Task | undefined> {
         try {
             let task = await this.redisClient.lpop(this.redisQueueKey)
@@ -28,6 +29,7 @@ class TaskServiceImpl implements TaskService {
         }
     }
 
+    // Enqueues task to end of redis task list
     public async enqueue(task: Task): Promise<void> {
         try {
             if (!task.taskId) {
@@ -45,10 +47,12 @@ class TaskServiceImpl implements TaskService {
         }
     }
 
+    // Sets taskId key value pair representing task result in redis db
     public async setResult(taskId: string, result: boolean): Promise<void> {
         await this.redisClient.set(taskId, result ? 'true' : 'false')
     }
 
+    // Gets taskId key value pair from redis db
     async getResult(taskId: string): Promise<Record<string, boolean> | undefined> {
         const result = await this.redisClient.get(taskId)
         if (!result) {
@@ -57,6 +61,8 @@ class TaskServiceImpl implements TaskService {
         return JSON.parse(result);
     }
 
+    // Dequeues task from redis task list & processes w/ AIVideoProcessor
+    // Retries up to 3 times
     public async processNextTask(retryCount?: number, recursiveTask?: Task,  testResult?: boolean): Promise<boolean> {
         const currentCount = retryCount ? retryCount + 1 : 1
 

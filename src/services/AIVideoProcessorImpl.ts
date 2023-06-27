@@ -12,6 +12,9 @@ class AIVideoProcessorImpl implements AIVideoProcessor {
 
 }
 
+// Outside unit tests, testResult will be undefined.
+// If randomly generated number thresholds, then reject to simulate fail. Otherwise, resolve to simulate success
+// During unit tests, dummyProcessing will return testResult passed from unit test
 const dummyProcessing = async (processTime: number, testResult?: boolean): Promise<boolean> => {
     return new Promise<boolean>((resolve, reject) => {
         setTimeout(() => {
