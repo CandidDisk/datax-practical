@@ -108,4 +108,17 @@ describe('taskService', () => {
 
         expect(processResult).toEqual(result)
     })
+
+    // Test processNextTask should unsuccessfully process the first task from the queue with two tasks
+    test('processNextTask should unsuccessfully process dequeued task from redis', async () => {
+        dummyTaskQueue.map(async (task) => {
+            await redis.rpush("taskQueue", JSON.stringify(task))
+        })
+
+        const result = false
+
+        const processResult = await taskService.processNextTask(undefined, undefined, false)
+
+        expect(processResult).toEqual(result)
+    })
 })
