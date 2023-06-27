@@ -8,10 +8,6 @@ class TaskServiceImpl implements TaskService {
 
     private redisQueueKey: string = "taskQueue"
 
-    private taskQueue: Task[] = []
-
-    private taskResults: Record<string, boolean> = {}
-
     private aiVideoProcessor = new AIVideoProcessorImpl()
 
     public async dequeue(): Promise<Task | undefined> {
@@ -48,24 +44,46 @@ class TaskServiceImpl implements TaskService {
     }
 
     public async setResult(taskId: string, result: boolean): Promise<void> {
-        this.taskResults[taskId] = result;
+        await redis.set(taskId, result ? 'true' : 'false')
     }
 
-    getResult(taskId: string): Record<string, boolean> | undefined {
-        console.log(this.taskResults)
-        return undefined;
+    async getResult(taskId: string): Promise<Record<string, boolean> | undefined> {
+        const result = await redis.get(taskId)
+        if (!result) {
+            return undefined
+        }
+        return JSON.parse(result);
     }
 
-    public async processNextTask(): Promise<void> {
-        const task = await this.dequeue()
+    public async processNextTask(retryCount?: number, recursiveTask?: Task): Promise<boolean> {
+        const currentCount = retryCount ? retryCount + 1 : 1
+
+        const task = recursiveTask ? recursiveTask : await this.dequeue()
         if (!task) {
-            return
+            console.error('`Error processing task: No task found')
+            return false
         }
 
-        const result = await this.aiVideoProcessor.process(task)
-        await this.setResult(task.taskId, result)
-    }
+        let result = false
 
+        try {
+            result = await this.aiVideoProcessor.process(task)
+            console.log(`Task processed: ${task.taskId}`)
+        } catch (error) {
+            console.error(`Error processing task: ${task.taskId}`)
+            console.error(error)
+        }
+
+        if (result || currentCount > 3) {
+            await this.setResult(task.taskId, result)
+            console.log(`Final result ${result}`)
+            return result
+        }
+
+        console.log(`Retrying task | Attempt ${currentCount}: ${task.taskId}`)
+        const recursiveResponse = await this.processNextTask(currentCount, task)
+        return recursiveResponse
+    }
 }
 
 export { TaskServiceImpl }
