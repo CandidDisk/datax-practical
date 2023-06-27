@@ -33,4 +33,4 @@ task_id varchar(255) | result bit(1)
 ----------------------------------------
     "uuid"           |    0
 ```
-#### I wasn't able to complete this question because of time pressure. 
+#### I wasn't able to complete this question because of time. 
