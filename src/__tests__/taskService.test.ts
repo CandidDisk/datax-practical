@@ -17,6 +17,10 @@ describe('taskService', () => {
             taskId: "1",
             data: "Test 1"
         },
+        {
+            taskId: "2",
+            data: "Test 2"
+        },
     ]
 
     let redis = new Redis({
@@ -36,7 +40,7 @@ describe('taskService', () => {
 
     // Test enqueue single task to redis list
     test('enqueue should enqueue task to redis list', async () => {
-        const task: Task = { taskId: '2', data: 'Test 2' };
+        const task: Task = { taskId: '2', data: 'Test 2' }
 
         await taskService.enqueue(task)
 
@@ -47,8 +51,8 @@ describe('taskService', () => {
 
     // Test dequeue single task from redis list
     test('dequeue should dequeue single task from redis list', async () => {
-        const expectedTask: Task = { taskId: "1", data: "Test 1" }
-        await redis.rpush("taskQueue", JSON.stringify(expectedTask));
+        const expectedTask: Task = dummyTaskQueue[0]
+        await redis.rpush("taskQueue", JSON.stringify(expectedTask))
         const task = await taskService.dequeue()
         expect(task).toEqual(expectedTask)
     })
@@ -90,5 +94,18 @@ describe('taskService', () => {
         const result = await taskService.getResult(taskId)
 
         expect(result).toEqual(undefined)
+    })
+
+    // Test processNextTask should successfully process the first task from the queue with two tasks
+    test('processNextTask should successfully process dequeued task from redis', async () => {
+        dummyTaskQueue.map(async (task) => {
+            await redis.rpush("taskQueue", JSON.stringify(task))
+        })
+
+        const result = true
+
+        const processResult = await taskService.processNextTask(undefined, undefined, true)
+
+        expect(processResult).toEqual(result)
     })
 })
