@@ -2,6 +2,7 @@ import {TaskService} from "./TaskService";
 import {Task} from "../models/TaskInterface";
 import {AIVideoProcessorImpl} from "./AIVideoProcessorImpl";
 import {redis} from "../config/redis";
+import {v4 as uuidv4} from "uuid";
 
 class TaskServiceImpl implements TaskService {
 
@@ -31,10 +32,15 @@ class TaskServiceImpl implements TaskService {
 
     public async enqueue(task: Task): Promise<void> {
         try {
+            if (!task.taskId) {
+                task.taskId = uuidv4()
+            }
+
             await redis.rpush(
                 this.redisQueueKey,
                 JSON.stringify(task)
             )
+
             console.log('Pushed!')
         } catch (e) {
             console.error(e)
