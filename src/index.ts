@@ -5,10 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 const taskService = new TaskServiceImpl()
 
-const task2: Task = {
-    taskId: uuidv4(),
-    data: "Ta"
-}
 
 const taskArr: Task[] = [
     {
@@ -29,14 +25,13 @@ const taskArr: Task[] = [
     }
 ]
 
-//taskService.enqueue(task)
-
-//taskArr.map(async (task) => {
-//    await taskService.enqueue(task)
-//})
-
-taskService.processNextTask().then(r => {
-    console.log(r)
-    //taskService.getResult(task.taskId)
-    console.log('done')
+taskArr.map(async (task) => {
+    await taskService.enqueue(task)
 })
+
+taskArr.map(async (task) => {
+    await taskService.processNextTask().then(async (result) => {
+        console.log(`Completed w/ task [${task.taskId}], result: ${result}`)
+    })
+})
+
