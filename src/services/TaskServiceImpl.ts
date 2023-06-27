@@ -1,8 +1,12 @@
 import {TaskService} from "./TaskService";
 import {Task} from "../models/TaskInterface";
 import {AIVideoProcessorImpl} from "./AIVideoProcessorImpl";
+import {redis} from "../config/redis";
+import {v4 as uuidv4} from "uuid";
 
 class TaskServiceImpl implements TaskService {
+
+    private redisQueueKey: string = "taskQueue"
 
     private taskQueue: Task[] = []
 
@@ -11,11 +15,36 @@ class TaskServiceImpl implements TaskService {
     private aiVideoProcessor = new AIVideoProcessorImpl()
 
     public async dequeue(): Promise<Task | undefined> {
-        return this.taskQueue.shift()
+        try {
+            let task = await redis.lpop(this.redisQueueKey)
+
+            if (!task) {
+                return undefined
+            }
+            const returnTask: Task = JSON.parse(task)
+            console.log(returnTask)
+            return returnTask
+        } catch (e) {
+            console.error(e)
+            return undefined
+        }
     }
 
-    public enqueue(task: Task): void {
-        this.taskQueue.push(task)
+    public async enqueue(task: Task): Promise<void> {
+        try {
+            if (!task.taskId) {
+                task.taskId = uuidv4()
+            }
+
+            await redis.rpush(
+                this.redisQueueKey,
+                JSON.stringify(task)
+            )
+
+            console.log('Pushed!')
+        } catch (e) {
+            console.error(e)
+        }
     }
 
     public async setResult(taskId: string, result: boolean): Promise<void> {
@@ -34,8 +63,6 @@ class TaskServiceImpl implements TaskService {
         }
 
         const result = await this.aiVideoProcessor.process(task)
-        console.log('result')
-        console.log(result)
         await this.setResult(task.taskId, result)
     }
 
