@@ -6,13 +6,15 @@ import {v4 as uuidv4} from "uuid";
 
 class TaskServiceImpl implements TaskService {
 
-    private redisQueueKey: string = "taskQueue"
+    public redisQueueKey: string = "taskQueue"
 
-    private aiVideoProcessor = new AIVideoProcessorImpl()
+    public aiVideoProcessor = new AIVideoProcessorImpl()
+
+    public redisClient = redis
 
     public async dequeue(): Promise<Task | undefined> {
         try {
-            let task = await redis.lpop(this.redisQueueKey)
+            let task = await this.redisClient.lpop(this.redisQueueKey)
 
             if (!task) {
                 return undefined
@@ -32,7 +34,7 @@ class TaskServiceImpl implements TaskService {
                 task.taskId = uuidv4()
             }
 
-            await redis.rpush(
+            await this.redisClient.rpush(
                 this.redisQueueKey,
                 JSON.stringify(task)
             )
@@ -44,11 +46,11 @@ class TaskServiceImpl implements TaskService {
     }
 
     public async setResult(taskId: string, result: boolean): Promise<void> {
-        await redis.set(taskId, result ? 'true' : 'false')
+        await this.redisClient.set(taskId, result ? 'true' : 'false')
     }
 
     async getResult(taskId: string): Promise<Record<string, boolean> | undefined> {
-        const result = await redis.get(taskId)
+        const result = await this.redisClient.get(taskId)
         if (!result) {
             return undefined
         }
