@@ -52,4 +52,10 @@ describe('taskService', () => {
         const task = await taskService.dequeue()
         expect(task).toEqual(expectedTask)
     })
+
+    // Test dequeue w/ no tasks should return undefined
+    test('dequeue should return undefined when no tasks in redis list', async () => {
+        const task = await taskService.dequeue()
+        expect(task).toEqual(undefined)
+    })
 })
