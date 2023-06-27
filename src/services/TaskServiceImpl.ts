@@ -57,7 +57,7 @@ class TaskServiceImpl implements TaskService {
         return JSON.parse(result);
     }
 
-    public async processNextTask(retryCount?: number, recursiveTask?: Task): Promise<boolean> {
+    public async processNextTask(retryCount?: number, recursiveTask?: Task,  testResult?: boolean): Promise<boolean> {
         const currentCount = retryCount ? retryCount + 1 : 1
 
         const task = recursiveTask ? recursiveTask : await this.dequeue()
@@ -69,7 +69,7 @@ class TaskServiceImpl implements TaskService {
         let result = false
 
         try {
-            result = await this.aiVideoProcessor.process(task)
+            result = await this.aiVideoProcessor.process(task, testResult)
             console.log(`Task processed: ${task.taskId}`)
         } catch (error) {
             console.error(`Error processing task: ${task.taskId}`)
@@ -83,7 +83,7 @@ class TaskServiceImpl implements TaskService {
         }
 
         console.log(`Retrying task | Attempt ${currentCount}: ${task.taskId}`)
-        const recursiveResponse = await this.processNextTask(currentCount, task)
+        const recursiveResponse = await this.processNextTask(currentCount, task, testResult)
         return recursiveResponse
     }
 }
