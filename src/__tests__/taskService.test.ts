@@ -81,4 +81,14 @@ describe('taskService', () => {
 
         expect(result).toEqual(value)
     })
+
+    // Test getResult should return undefined if the key is not found in redis
+    test('getResult should return undefined if task is not found', async () => {
+        const taskId = "1"
+        const value = false
+
+        const result = await taskService.getResult(taskId)
+
+        expect(result).toEqual(undefined)
+    })
 })
